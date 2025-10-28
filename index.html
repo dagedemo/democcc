@@ -2,216 +2,191 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>DaCloud Config Center — Demo Console</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DCCC Admin Console — Demo</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { font-family: 'Inter', sans-serif; }
+    body {
+      @apply bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100;
+    }
     .input {
-      @apply border rounded-lg px-3 py-2 w-full text-sm bg-gray-50 dark:bg-gray-800 dark:text-gray-100;
+      @apply px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500;
     }
     .btn-primary {
-      @apply bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700;
+      @apply px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition;
     }
     .btn-secondary {
-      @apply bg-gray-600 text-white px-3 py-2 rounded-lg hover:bg-gray-700;
+      @apply px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition;
     }
-    .btn-danger {
-      @apply bg-red-600 text-white px-3 py-1 rounded-lg hover:bg-red-700;
+    .table {
+      @apply w-full border-collapse;
+    }
+    .table th, .table td {
+      @apply border border-gray-300 dark:border-gray-700 px-3 py-2 text-sm;
     }
   </style>
 </head>
-<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col">
 
   <!-- Header -->
-  <header class="p-4 bg-gray-800 flex flex-wrap gap-3 items-center border-b border-gray-700">
-    <div class="text-xl font-semibold text-blue-400">DCCC Demo Console</div>
-    <div class="flex gap-2 items-center w-full md:w-auto">
-      <input id="baseUrl" class="input" value="https://dccc.dagedemo.workers.dev" placeholder="API Base URL">
-      <input id="readToken" class="input" value="Demo222-" placeholder="Read Token">
-      <input id="writeToken" class="input" value="Demo111+" placeholder="Write Token">
-    </div>
+  <header class="bg-indigo-700 text-white p-4 flex items-center justify-between">
+    <h1 class="text-lg font-semibold">Da Cloud Config Center — Demo Admin</h1>
   </header>
 
+  <!-- Config Inputs -->
+  <section class="p-4 bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex flex-wrap gap-2">
+    <input id="baseUrl" class="input flex-1 min-w-[240px]" placeholder="API Base URL"
+      value="https://dccc.dagedemo.workers.dev">
+    <input id="readToken" class="input w-[180px]" placeholder="Read Token" value="Demo222-">
+    <input id="writeToken" class="input w-[180px]" placeholder="Write Token" value="Demo111+">
+  </section>
+
   <!-- Query Bar -->
-  <div class="flex flex-wrap gap-2 p-3 bg-gray-800 border-b border-gray-700">
-    <input id="qService" class="input md:w-1/5" placeholder="Service (optional)">
-    <input id="qInstance" class="input md:w-1/5" placeholder="Instance (optional)">
-    <input id="qKey" class="input md:w-1/4" placeholder="Key (optional)">
+  <section class="flex flex-wrap gap-2 p-3 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+    <input id="qService" class="input" placeholder="Service" value="dademo">
+    <input id="qInstance" class="input" placeholder="Instance" value="test">
+    <input id="qKey" class="input" placeholder="Key" value="timeout">
     <button id="btnQuery" class="btn-primary">Query Key</button>
     <button id="btnList" class="btn-secondary">List All</button>
-    <button id="btnAdd" class="btn-primary ml-auto">Add Config</button>
-  </div>
+  </section>
 
   <!-- Table -->
-  <main class="p-4 flex-1 overflow-auto">
-    <table class="w-full text-sm border-collapse">
-      <thead class="bg-gray-700 text-gray-300">
+  <main class="flex-1 overflow-auto p-4">
+    <table class="table bg-white dark:bg-gray-800 rounded-md shadow-md">
+      <thead class="bg-gray-200 dark:bg-gray-700">
         <tr>
-          <th class="p-2 border border-gray-600 text-left">Service</th>
-          <th class="p-2 border border-gray-600 text-left">Instance</th>
-          <th class="p-2 border border-gray-600 text-left">Key</th>
-          <th class="p-2 border border-gray-600 text-left">Value</th>
-          <th class="p-2 border border-gray-600 text-left">Created</th>
-          <th class="p-2 border border-gray-600 text-center">Actions</th>
+          <th>Service</th>
+          <th>Instance</th>
+          <th>Key</th>
+          <th>Value</th>
+          <th>Actions</th>
         </tr>
       </thead>
-      <tbody id="tableBody"></tbody>
+      <tbody id="configTable">
+        <tr><td colspan="5" class="text-center py-4 text-gray-500">No data yet</td></tr>
+      </tbody>
     </table>
   </main>
 
-  <!-- Modal -->
-  <div id="modal" class="fixed inset-0 bg-black bg-opacity-60 hidden items-center justify-center">
-    <div class="bg-gray-800 p-6 rounded-lg w-full max-w-md">
-      <h2 id="modalTitle" class="text-lg font-semibold mb-4"></h2>
-      <input id="mService" class="input mb-2" placeholder="Service">
-      <input id="mInstance" class="input mb-2" placeholder="Instance">
-      <input id="mKey" class="input mb-2" placeholder="Key">
-      <textarea id="mValue" class="input h-32" placeholder="Value (text or JSON)"></textarea>
-      <div class="flex justify-end gap-2 mt-4">
-        <button id="btnCancel" class="btn-secondary">Cancel</button>
-        <button id="btnSave" class="btn-primary">Save</button>
-      </div>
-    </div>
-  </div>
+  <footer class="text-center text-xs text-gray-500 dark:text-gray-400 p-3 border-t border-gray-200 dark:border-gray-700">
+    © 2025 dage.party — DCCC Demo Admin Console
+  </footer>
 
   <script>
-    const tbody = document.getElementById("tableBody");
-    const modal = document.getElementById("modal");
-    const modalTitle = document.getElementById("modalTitle");
-    const btnSave = document.getElementById("btnSave");
-    const btnCancel = document.getElementById("btnCancel");
-
-    let editMode = false;
-
-    // --- Event Listeners ---
-    document.getElementById("btnList").addEventListener("click", loadConfigs);
-    document.getElementById("btnQuery").addEventListener("click", queryConfig);
-    document.getElementById("btnAdd").addEventListener("click", () => openModal(false));
-    btnCancel.addEventListener("click", () => modal.classList.add("hidden"));
-    btnSave.addEventListener("click", saveConfig);
-
-    // --- Helpers ---
-    async function loadConfigs() {
-      const base = baseUrl();
-      const token = readToken();
-      const svc = document.getElementById("qService").value.trim();
-      const inst = document.getElementById("qInstance").value.trim();
-      const url = `${base}/configs?service=${svc}&instance=${inst}`;
-
-      const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (!data.success) return alert("Error: " + data.error);
-      renderConfigs(data.configs);
-    }
-
-    async function queryConfig() {
-      const base = baseUrl();
-      const token = readToken();
-      const svc = document.getElementById("qService").value.trim();
-      const inst = document.getElementById("qInstance").value.trim();
-      const key = document.getElementById("qKey").value.trim();
-
-      if (!key) return alert("Please enter a key to query.");
-
-      const url = `${base}/config?service=${svc}&instance=${inst}&key=${key}`;
-      const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (!data.found) return alert("Key not found.");
-      renderConfigs([
-        {
-          service: svc || "(global)",
-          instance: inst || "(global)",
-          key,
-          value: data.value,
-          created_at: "–",
-        },
-      ]);
-    }
+    const tableBody = document.getElementById("configTable");
 
     function renderConfigs(configs) {
-      tbody.innerHTML = "";
-      if (!configs.length) {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center p-4 text-gray-400">No configs found.</td></tr>`;
+      tableBody.innerHTML = "";
+      if (!configs || configs.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-gray-500">No configs found</td></tr>`;
         return;
       }
-      for (const c of configs) {
+
+      for (const cfg of configs) {
         const row = document.createElement("tr");
-        row.className = "hover:bg-gray-800";
         row.innerHTML = `
-          <td class="p-2 border border-gray-700">${c.service || ""}</td>
-          <td class="p-2 border border-gray-700">${c.instance || ""}</td>
-          <td class="p-2 border border-gray-700">${c.key}</td>
-          <td class="p-2 border border-gray-700">${c.value}</td>
-          <td class="p-2 border border-gray-700">${c.created_at || ""}</td>
-          <td class="p-2 border border-gray-700 text-center">
-            <button class="btn-secondary text-xs" onclick='openModal(true, ${JSON.stringify(c)})'>Edit</button>
-            <button class="btn-danger text-xs" onclick='deleteConfig(${JSON.stringify(c)})'>Delete</button>
-          </td>
-        `;
-        tbody.appendChild(row);
+          <td>${cfg.service || ""}</td>
+          <td>${cfg.instance || ""}</td>
+          <td>${cfg.key}</td>
+          <td><input data-key="${cfg.key}" value="${cfg.value ?? ""}" class="input w-full valueInput"></td>
+          <td class="flex gap-1 justify-center">
+            <button class="btn-primary text-xs px-2 py-1 saveBtn" data-key="${cfg.key}">Save</button>
+            <button class="btn-secondary text-xs px-2 py-1 delBtn" data-key="${cfg.key}">Del</button>
+          </td>`;
+        tableBody.appendChild(row);
       }
+
+      // Save handlers
+      document.querySelectorAll(".saveBtn").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const key = btn.dataset.key;
+          const val = document.querySelector(`input[data-key="${key}"]`).value;
+          await saveConfig(key, val);
+        });
+      });
+
+      // Delete handlers
+      document.querySelectorAll(".delBtn").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const key = btn.dataset.key;
+          if (!confirm("Delete key: " + key + "?")) return;
+          await deleteConfig(key);
+        });
+      });
     }
 
-    function openModal(edit, data = {}) {
-      editMode = edit;
-      modalTitle.textContent = edit ? "Edit Config" : "Add Config";
-      document.getElementById("mService").value = data.service || "";
-      document.getElementById("mInstance").value = data.instance || "";
-      document.getElementById("mKey").value = data.key || "";
-      document.getElementById("mValue").value = data.value || "";
-      modal.classList.remove("hidden");
-    }
-
-    async function saveConfig() {
-      const base = baseUrl();
-      const token = writeToken();
-
-      const payload = {
-        service: document.getElementById("mService").value.trim(),
-        instance: document.getElementById("mInstance").value.trim(),
-        key: document.getElementById("mKey").value.trim(),
-        value: document.getElementById("mValue").value.trim(),
-      };
-
-      if (!payload.key) return alert("Key is required.");
+    async function saveConfig(key, value) {
+      const base = document.getElementById("baseUrl").value.trim();
+      const writeToken = document.getElementById("writeToken").value.trim();
+      const service = document.getElementById("qService").value.trim();
+      const instance = document.getElementById("qInstance").value.trim();
 
       const res = await fetch(`${base}/config`, {
         method: "PUT",
         headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          "Authorization": `Bearer ${writeToken}`,
+          "Content-Type": "application/json"
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ service, instance, key, value })
       });
 
       const data = await res.json();
-      if (!data.success) return alert("Error: " + data.error);
-      modal.classList.add("hidden");
-      loadConfigs();
+      alert(data.success ? "✅ Saved" : "❌ " + (data.error || "Save failed"));
     }
 
-    async function deleteConfig(cfg) {
-      if (!confirm(`Delete key "${cfg.key}"?`)) return;
-      const base = baseUrl();
-      const token = writeToken();
-      const url = `${base}/config?service=${cfg.service}&instance=${cfg.instance}&key=${cfg.key}`;
+    async function deleteConfig(key) {
+      const base = document.getElementById("baseUrl").value.trim();
+      const writeToken = document.getElementById("writeToken").value.trim();
+      const service = document.getElementById("qService").value.trim();
+      const instance = document.getElementById("qInstance").value.trim();
+
+      const url = `${base}/config?service=${service}&instance=${instance}&key=${key}`;
       const res = await fetch(url, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { "Authorization": `Bearer ${writeToken}` }
       });
+
       const data = await res.json();
-      if (!data.success) return alert("Error: " + data.error);
-      loadConfigs();
+      alert(data.success ? "🗑️ Deleted" : "❌ " + (data.error || "Delete failed"));
     }
 
-    const baseUrl = () => document.getElementById("baseUrl").value.trim();
-    const readToken = () => document.getElementById("readToken").value.trim();
-    const writeToken = () => document.getElementById("writeToken").value.trim();
+    document.getElementById("btnQuery").addEventListener("click", async () => {
+      const base = document.getElementById("baseUrl").value.trim();
+      const readToken = document.getElementById("readToken").value.trim();
+      const service = document.getElementById("qService").value.trim();
+      const instance = document.getElementById("qInstance").value.trim();
+      const key = document.getElementById("qKey").value.trim();
+
+      if (!key) return alert("Please enter a key to query.");
+
+      const url = `${base}/config?service=${service}&instance=${instance}&key=${key}`;
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${readToken}` },
+      });
+
+      const data = await res.json();
+      if (!data.success) return alert("Error: " + (data.error || "Failed"));
+
+      renderConfigs([
+        {
+          service,
+          instance,
+          key,
+          value: data.value,
+        },
+      ]);
+    });
+
+    document.getElementById("btnList").addEventListener("click", async () => {
+      const base = document.getElementById("baseUrl").value.trim();
+      const readToken = document.getElementById("readToken").value.trim();
+      const res = await fetch(`${base}/configs`, {
+        headers: { Authorization: `Bearer ${readToken}` },
+      });
+      const data = await res.json();
+      if (!data.success) return alert("Error: " + (data.error || "Failed"));
+      renderConfigs(data.configs || []);
+    });
   </script>
 </body>
 </html>
