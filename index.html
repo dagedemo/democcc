@@ -3,190 +3,147 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DCCC Admin Console — Demo</title>
+  <title>DCCC Demo Console</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body {
-      @apply bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100;
-    }
-    .input {
-      @apply px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500;
-    }
-    .btn-primary {
-      @apply px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition;
-    }
-    .btn-secondary {
-      @apply px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition;
-    }
-    .table {
-      @apply w-full border-collapse;
-    }
-    .table th, .table td {
-      @apply border border-gray-300 dark:border-gray-700 px-3 py-2 text-sm;
-    }
+    body { background-color: #f8fafc; font-family: 'Inter', sans-serif; }
+    .card { background: white; border-radius: 1rem; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+    .json-box { background: #f1f5f9; border-radius: 0.5rem; padding: 1rem; font-family: monospace; white-space: pre-wrap; }
   </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col items-center py-8">
+  <div class="w-full max-w-3xl space-y-6">
+    <header class="text-center">
+      <h1 class="text-3xl font-bold text-gray-800">DaCloud Config Center — Demo</h1>
+      <p class="text-gray-500 mt-1">Lightweight distributed config service (DCCC)</p>
+    </header>
 
-  <!-- Header -->
-  <header class="bg-indigo-700 text-white p-4 flex items-center justify-between">
-    <h1 class="text-lg font-semibold">Da Cloud Config Center — Demo Admin</h1>
-  </header>
+    <!-- Global Settings -->
+    <div class="card p-6 space-y-4">
+      <h2 class="text-xl font-semibold text-gray-700">API Settings</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm text-gray-600 mb-1">Base URL</label>
+          <input id="baseUrl" value="https://dccc.dagedemo.workers.dev" class="w-full border rounded-lg px-3 py-2" />
+        </div>
+        <div>
+          <label class="block text-sm text-gray-600 mb-1">Write Token</label>
+          <input id="writeToken" value="Demo111+" class="w-full border rounded-lg px-3 py-2" />
+        </div>
+        <div>
+          <label class="block text-sm text-gray-600 mb-1">Read Token</label>
+          <input id="readToken" value="Demo222-" class="w-full border rounded-lg px-3 py-2" />
+        </div>
+      </div>
+    </div>
 
-  <!-- Config Inputs -->
-  <section class="p-4 bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex flex-wrap gap-2">
-    <input id="baseUrl" class="input flex-1 min-w-[240px]" placeholder="API Base URL"
-      value="https://dccc.dagedemo.workers.dev">
-    <input id="readToken" class="input w-[180px]" placeholder="Read Token" value="Demo222-">
-    <input id="writeToken" class="input w-[180px]" placeholder="Write Token" value="Demo111+">
-  </section>
+    <!-- Query Area -->
+    <div class="card p-6 space-y-4">
+      <h2 class="text-xl font-semibold text-gray-700">Query / Manage Config</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label class="block text-sm text-gray-600 mb-1">Service</label>
+          <input id="service" value="dademo" class="w-full border rounded-lg px-3 py-2" />
+        </div>
+        <div>
+          <label class="block text-sm text-gray-600 mb-1">Instance</label>
+          <input id="instance" value="test" class="w-full border rounded-lg px-3 py-2" />
+        </div>
+        <div>
+          <label class="block text-sm text-gray-600 mb-1">Key</label>
+          <input id="key" value="timeout" class="w-full border rounded-lg px-3 py-2" />
+        </div>
+      </div>
 
-  <!-- Query Bar -->
-  <section class="flex flex-wrap gap-2 p-3 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
-    <input id="qService" class="input" placeholder="Service" value="dademo">
-    <input id="qInstance" class="input" placeholder="Instance" value="test">
-    <input id="qKey" class="input" placeholder="Key" value="timeout">
-    <button id="btnQuery" class="btn-primary">Query Key</button>
-    <button id="btnList" class="btn-secondary">List All</button>
-  </section>
+      <div class="flex flex-wrap gap-3">
+        <button id="btnQuery" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg">Query Key</button>
+        <button id="btnList" class="bg-slate-600 hover:bg-slate-700 text-white font-medium px-4 py-2 rounded-lg">List All</button>
+        <button id="btnPut" class="bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded-lg">Set Value</button>
+        <button id="btnDelete" class="bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2 rounded-lg">Delete Key</button>
+      </div>
+    </div>
 
-  <!-- Table -->
-  <main class="flex-1 overflow-auto p-4">
-    <table class="table bg-white dark:bg-gray-800 rounded-md shadow-md">
-      <thead class="bg-gray-200 dark:bg-gray-700">
-        <tr>
-          <th>Service</th>
-          <th>Instance</th>
-          <th>Key</th>
-          <th>Value</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="configTable">
-        <tr><td colspan="5" class="text-center py-4 text-gray-500">No data yet</td></tr>
-      </tbody>
-    </table>
-  </main>
-
-  <footer class="text-center text-xs text-gray-500 dark:text-gray-400 p-3 border-t border-gray-200 dark:border-gray-700">
-    © 2025 dage.party — DCCC Demo Admin Console
-  </footer>
+    <!-- Result Area -->
+    <div class="card p-6">
+      <h2 class="text-lg font-semibold text-gray-700 mb-2">Result</h2>
+      <div id="result" class="json-box text-gray-700 text-sm">Ready.</div>
+    </div>
+  </div>
 
   <script>
-    const tableBody = document.getElementById("configTable");
-
-    function renderConfigs(configs) {
-      tableBody.innerHTML = "";
-      if (!configs || configs.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-gray-500">No configs found</td></tr>`;
-        return;
-      }
-
-      for (const cfg of configs) {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${cfg.service || ""}</td>
-          <td>${cfg.instance || ""}</td>
-          <td>${cfg.key}</td>
-          <td><input data-key="${cfg.key}" value="${cfg.value ?? ""}" class="input w-full valueInput"></td>
-          <td class="flex gap-1 justify-center">
-            <button class="btn-primary text-xs px-2 py-1 saveBtn" data-key="${cfg.key}">Save</button>
-            <button class="btn-secondary text-xs px-2 py-1 delBtn" data-key="${cfg.key}">Del</button>
-          </td>`;
-        tableBody.appendChild(row);
-      }
-
-      // Save handlers
-      document.querySelectorAll(".saveBtn").forEach(btn => {
-        btn.addEventListener("click", async () => {
-          const key = btn.dataset.key;
-          const val = document.querySelector(`input[data-key="${key}"]`).value;
-          await saveConfig(key, val);
+    async function apiCall(path, options = {}, tokenType = "read") {
+      const base = document.getElementById("baseUrl").value.trim();
+      const token = (tokenType === "write" ? document.getElementById("writeToken") : document.getElementById("readToken")).value.trim();
+      try {
+        const res = await fetch(base + path, {
+          ...options,
+          headers: {
+            ...(options.headers || {}),
+            "Authorization": "Bearer " + token,
+            "Content-Type": "application/json",
+          },
         });
-      });
-
-      // Delete handlers
-      document.querySelectorAll(".delBtn").forEach(btn => {
-        btn.addEventListener("click", async () => {
-          const key = btn.dataset.key;
-          if (!confirm("Delete key: " + key + "?")) return;
-          await deleteConfig(key);
-        });
-      });
+        const text = await res.text();
+        let data;
+        try { data = JSON.parse(text); } catch { data = text; }
+        if (!res.ok) throw new Error((data && data.error) || res.statusText);
+        return data;
+      } catch (err) {
+        showResult({ error: err.message });
+        throw err;
+      }
     }
 
-    async function saveConfig(key, value) {
-      const base = document.getElementById("baseUrl").value.trim();
-      const writeToken = document.getElementById("writeToken").value.trim();
-      const service = document.getElementById("qService").value.trim();
-      const instance = document.getElementById("qInstance").value.trim();
-
-      const res = await fetch(`${base}/config`, {
-        method: "PUT",
-        headers: {
-          "Authorization": `Bearer ${writeToken}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ service, instance, key, value })
-      });
-
-      const data = await res.json();
-      alert(data.success ? "✅ Saved" : "❌ " + (data.error || "Save failed"));
+    function showResult(data) {
+      const box = document.getElementById("result");
+      box.textContent = JSON.stringify(data, null, 2);
     }
 
-    async function deleteConfig(key) {
-      const base = document.getElementById("baseUrl").value.trim();
-      const writeToken = document.getElementById("writeToken").value.trim();
-      const service = document.getElementById("qService").value.trim();
-      const instance = document.getElementById("qInstance").value.trim();
+    document.getElementById("btnQuery").onclick = async () => {
+      const s = service.value.trim();
+      const i = instance.value.trim();
+      const k = key.value.trim();
+      try {
+        const data = await apiCall(`/config?service=${s}&instance=${i}&key=${k}`, {}, "read");
+        if (data.found) showResult({ key: data.key, value: data.value, source: data.source });
+        else showResult({ message: "Key not found" });
+      } catch {}
+    };
 
-      const url = `${base}/config?service=${service}&instance=${instance}&key=${key}`;
-      const res = await fetch(url, {
-        method: "DELETE",
-        headers: { "Authorization": `Bearer ${writeToken}` }
-      });
+    document.getElementById("btnList").onclick = async () => {
+      const s = service.value.trim();
+      const i = instance.value.trim();
+      try {
+        const data = await apiCall(`/configs?service=${s}&instance=${i}`, {}, "read");
+        showResult(data);
+      } catch {}
+    };
 
-      const data = await res.json();
-      alert(data.success ? "🗑️ Deleted" : "❌ " + (data.error || "Delete failed"));
-    }
+    document.getElementById("btnPut").onclick = async () => {
+      const s = service.value.trim();
+      const i = instance.value.trim();
+      const k = key.value.trim();
+      const v = prompt("Enter new value:");
+      if (v === null) return;
+      try {
+        const data = await apiCall("/config", {
+          method: "PUT",
+          body: JSON.stringify({ service: s, instance: i, key: k, value: v }),
+        }, "write");
+        showResult(data);
+      } catch {}
+    };
 
-    document.getElementById("btnQuery").addEventListener("click", async () => {
-      const base = document.getElementById("baseUrl").value.trim();
-      const readToken = document.getElementById("readToken").value.trim();
-      const service = document.getElementById("qService").value.trim();
-      const instance = document.getElementById("qInstance").value.trim();
-      const key = document.getElementById("qKey").value.trim();
-
-      if (!key) return alert("Please enter a key to query.");
-
-      const url = `${base}/config?service=${service}&instance=${instance}&key=${key}`;
-      const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${readToken}` },
-      });
-
-      const data = await res.json();
-      if (!data.success) return alert("Error: " + (data.error || "Failed"));
-
-      renderConfigs([
-        {
-          service,
-          instance,
-          key,
-          value: data.value,
-        },
-      ]);
-    });
-
-    document.getElementById("btnList").addEventListener("click", async () => {
-      const base = document.getElementById("baseUrl").value.trim();
-      const readToken = document.getElementById("readToken").value.trim();
-      const res = await fetch(`${base}/configs`, {
-        headers: { Authorization: `Bearer ${readToken}` },
-      });
-      const data = await res.json();
-      if (!data.success) return alert("Error: " + (data.error || "Failed"));
-      renderConfigs(data.configs || []);
-    });
+    document.getElementById("btnDelete").onclick = async () => {
+      const s = service.value.trim();
+      const i = instance.value.trim();
+      const k = key.value.trim();
+      if (!confirm(`Delete key "${k}"?`)) return;
+      try {
+        const data = await apiCall(`/config?service=${s}&instance=${i}&key=${k}`, { method: "DELETE" }, "write");
+        showResult(data);
+      } catch {}
+    };
   </script>
 </body>
 </html>
