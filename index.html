@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DCCC Admin Demo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
+  <div class="max-w-4xl mx-auto mt-8 p-6 bg-white rounded-2xl shadow-lg border border-gray-200">
+    <h1 class="text-2xl font-bold mb-6 text-center text-blue-700">DaCloud Config Center — Demo Console</h1>
+
+    <!-- Connection Info -->
+    <div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-600 mb-1">API Base URL</label>
+        <input id="apiUrl" value="https://dccc.dagedemo.workers.dev" class="w-full border rounded-lg p-2 text-sm" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-600 mb-1">Read Token</label>
+        <input id="readToken" value="Demo222-" class="w-full border rounded-lg p-2 text-sm" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-600 mb-1">Write Token</label>
+        <input id="writeToken" value="Demo111+" class="w-full border rounded-lg p-2 text-sm" />
+      </div>
+    </div>
+
+    <!-- Config Query -->
+    <div class="mb-8">
+      <h2 class="text-lg font-semibold mb-3 text-gray-700 border-b pb-1">Config Operations</h2>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
+        <input id="service" value="dademo" placeholder="Service" class="border rounded-lg p-2 text-sm" />
+        <input id="instance" value="test" placeholder="Instance" class="border rounded-lg p-2 text-sm" />
+        <input id="key" value="timeout" placeholder="Key" class="border rounded-lg p-2 text-sm" />
+        <input id="value" placeholder="Value (for PUT)" class="border rounded-lg p-2 text-sm" />
+      </div>
+
+      <div class="flex flex-wrap gap-2">
+        <button onclick="queryKey()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">Get Config</button>
+        <button onclick="listConfigs()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium">List All</button>
+        <button onclick="putConfig()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium">Put Config</button>
+        <button onclick="deleteConfig()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium">Delete Config</button>
+      </div>
+
+      <pre id="result" class="bg-gray-100 text-gray-700 rounded-lg p-3 mt-3 text-sm overflow-auto min-h-[100px]"></pre>
+    </div>
+
+    <!-- Secret Query -->
+    <div>
+      <h2 class="text-lg font-semibold mb-3 text-gray-700 border-b pb-1">Secret Query</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+        <input id="secretName" value="DASECRET_TEST" placeholder="Secret Name (DASECRET_*)" class="border rounded-lg p-2 text-sm col-span-2" />
+        <button onclick="getSecret()" class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg text-sm font-medium">
+          Get Secret
+        </button>
+      </div>
+      <pre id="secretResult" class="bg-gray-100 text-gray-700 rounded-lg p-3 mt-3 text-sm overflow-auto min-h-[80px]"></pre>
+    </div>
+  </div>
+
+  <script>
+    function getToken(type) {
+      return document.getElementById(type).value.trim();
+    }
+
+    async function apiFetch(path, method = "GET", body = null, useWrite = false) {
+      const base = document.getElementById("apiUrl").value.trim();
+      const token = getToken(useWrite ? "writeToken" : "readToken");
+      const headers = {
+        "Authorization": "Bearer " + token,
+        "Content-Type": "application/json"
+      };
+      const opts = { method, headers };
+      if (body) opts.body = JSON.stringify(body);
+
+      try {
+        const res = await fetch(base + path, opts);
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Request failed");
+        return data;
+      } catch (err) {
+        return { error: err.message };
+      }
+    }
+
+    async function queryKey() {
+      const s = service.value, i = instance.value, k = key.value;
+      result.textContent = "Loading...";
+      const r = await apiFetch(`/config?service=${s}&instance=${i}&key=${k}`);
+      result.textContent = JSON.stringify(r, null, 2);
+    }
+
+    async function listConfigs() {
+      const s = service.value, i = instance.value;
+      result.textContent = "Loading...";
+      const r = await apiFetch(`/configs?service=${s}&instance=${i}`);
+      result.textContent = JSON.stringify(r, null, 2);
+    }
+
+    async function putConfig() {
+      const s = service.value, i = instance.value, k = key.value, v = value.value;
+      result.textContent = "Saving...";
+      const r = await apiFetch("/config", "PUT", { service: s, instance: i, key: k, value: v }, true);
+      result.textContent = JSON.stringify(r, null, 2);
+    }
+
+    async function deleteConfig() {
+      const s = service.value, i = instance.value, k = key.value;
+      result.textContent = "Deleting...";
+      const r = await apiFetch(`/config?service=${s}&instance=${i}&key=${k}`, "DELETE", null, true);
+      result.textContent = JSON.stringify(r, null, 2);
+    }
+
+    async function getSecret() {
+      const name = document.getElementById("secretName").value.trim();
+      secretResult.textContent = "Loading...";
+      const r = await apiFetch(`/secret?name=${name}`);
+      secretResult.textContent = JSON.stringify(r, null, 2);
+    }
+  </script>
+</body>
+</html>
