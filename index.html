@@ -1,224 +1,202 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Da Cloud Config Center (DCCC) — Demo Console</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DCCC Demo Console</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
-
-  <!-- Header -->
-  <header class="bg-white border-b border-gray-200 shadow-sm p-4 flex items-center justify-between">
-    <div class="font-bold text-xl text-blue-600">Da Cloud Config Center (DCCC)</div>
-    <div class="flex flex-wrap items-center gap-2">
-      <input id="baseUrl" value="https://dccc.dagedemo.workers.dev" class="border rounded px-2 py-1 text-sm w-64" placeholder="API Base URL"/>
-      <input id="readToken" class="border rounded px-2 py-1 text-sm w-40" placeholder="Read Token" value="Demo222-" />
-      <input id="writeToken" class="border rounded px-2 py-1 text-sm w-40" placeholder="Write Token" value="Demo111+" />
-      <button id="connectBtn" class="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700">Connect</button>
-    </div>
+<body class="bg-gray-50 text-gray-800">
+  <header class="bg-blue-600 text-white px-6 py-4 text-xl font-semibold">
+    DCCC Admin Console
   </header>
 
-  <!-- Main -->
-  <main class="flex-1 p-6">
-    <div id="status" class="text-sm text-gray-600 mb-4">Not connected.</div>
-
-    <div id="mainPanel" class="hidden">
-      <div class="flex gap-2 mb-4 flex-wrap">
-        <input id="serviceInput" class="border rounded px-2 py-1 text-sm w-48" placeholder="Service"/>
-        <input id="instanceInput" class="border rounded px-2 py-1 text-sm w-48" placeholder="Instance"/>
-        <button id="refreshBtn" class="bg-gray-200 px-3 py-1 rounded hover:bg-gray-300">Refresh</button>
-        <button id="addBtn" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">Add</button>
+  <main id="app" class="p-6 space-y-4">
+    <!-- connection -->
+    <section class="bg-white p-4 shadow rounded-lg">
+      <h2 class="text-lg font-medium mb-3">Connection</h2>
+      <div class="grid gap-3 md:grid-cols-3">
+        <div>
+          <label class="block text-sm font-medium mb-1">API Base URL</label>
+          <input id="baseUrl" type="text" value="https://dccc.dagedemo.workers.dev"
+                 class="w-full border p-2 rounded" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Read Token</label>
+          <input id="readToken" type="text" value="Demo222-"
+                 class="w-full border p-2 rounded" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Write Token</label>
+          <input id="writeToken" type="text" value="Demo111+"
+                 class="w-full border p-2 rounded" />
+        </div>
       </div>
+      <button id="connectBtn"
+        class="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+        Connect
+      </button>
+      <span id="status" class="ml-3 text-sm"></span>
+    </section>
 
-      <div class="overflow-x-auto border rounded-lg bg-white">
-        <table class="min-w-full text-sm">
-          <thead class="bg-gray-100 border-b">
-            <tr>
-              <th class="text-left p-2 border-r w-1/3">Key</th>
-              <th class="text-left p-2 border-r">Value</th>
-              <th class="text-center p-2 w-32">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="configTable" class="divide-y"></tbody>
-        </table>
+    <!-- config control -->
+    <section id="mainPanel" class="hidden bg-white p-4 shadow rounded-lg">
+      <div class="flex items-center gap-3 mb-4">
+        <input id="service" placeholder="Service name" value="test"
+               class="border p-2 rounded flex-1" />
+        <input id="instance" placeholder="Instance name" value="demo"
+               class="border p-2 rounded flex-1" />
+        <button id="refreshBtn"
+          class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded">
+          Refresh
+        </button>
+        <button id="newBtn"
+          class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded">
+          New Config
+        </button>
       </div>
-    </div>
+      <div id="configList" class="border rounded p-3 text-sm text-gray-700 bg-gray-50">
+        No data yet
+      </div>
+    </section>
   </main>
 
-  <!-- Footer -->
-  <footer class="text-center text-xs text-gray-500 py-3 border-t">
-    Powered by DCCC — dage.party
-  </footer>
-
-  <!-- Modal -->
-  <div id="modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-10">
-    <div class="bg-white p-4 rounded-lg shadow-lg w-96">
-      <h2 class="text-lg font-semibold mb-2" id="modalTitle">Edit Config</h2>
-      <input id="modalKey" class="border rounded w-full px-2 py-1 text-sm mb-2" placeholder="Key" />
-      <textarea id="modalValue" class="border rounded w-full px-2 py-1 text-sm h-32 font-mono" placeholder="Value (JSON or text)"></textarea>
-      <div class="flex justify-end gap-2 mt-3">
-        <button id="modalCancel" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Cancel</button>
-        <button id="modalSave" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
+  <!-- modal -->
+  <div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+    <div class="bg-white p-6 rounded-lg w-96">
+      <h3 id="modalTitle" class="text-lg font-semibold mb-3">Add Config</h3>
+      <input id="modalKey" placeholder="Key" class="border p-2 rounded w-full mb-2" />
+      <textarea id="modalValue" placeholder="Value" class="border p-2 rounded w-full h-24 mb-2"></textarea>
+      <div class="flex justify-end gap-2">
+        <button id="modalCancel" class="px-3 py-1 border rounded">Cancel</button>
+        <button id="modalSave" class="px-3 py-1 bg-blue-600 text-white rounded">Save</button>
       </div>
     </div>
   </div>
 
   <script>
-    const baseUrlInput = document.getElementById('baseUrl');
-    const readTokenInput = document.getElementById('readToken');
-    const writeTokenInput = document.getElementById('writeToken');
-    const connectBtn = document.getElementById('connectBtn');
-    const statusDiv = document.getElementById('status');
+    const baseUrlEl = document.getElementById('baseUrl');
+    const readTokenEl = document.getElementById('readToken');
+    const writeTokenEl = document.getElementById('writeToken');
+    const statusEl = document.getElementById('status');
     const mainPanel = document.getElementById('mainPanel');
-    const serviceInput = document.getElementById('serviceInput');
-    const instanceInput = document.getElementById('instanceInput');
-    const refreshBtn = document.getElementById('refreshBtn');
-    const addBtn = document.getElementById('addBtn');
-    const configTable = document.getElementById('configTable');
+    const configList = document.getElementById('configList');
+
+    const serviceEl = document.getElementById('service');
+    const instanceEl = document.getElementById('instance');
 
     const modal = document.getElementById('modal');
-    const modalTitle = document.getElementById('modalTitle');
     const modalKey = document.getElementById('modalKey');
     const modalValue = document.getElementById('modalValue');
-    const modalCancel = document.getElementById('modalCancel');
-    const modalSave = document.getElementById('modalSave');
+    const modalTitle = document.getElementById('modalTitle');
 
-    let readToken = '';
-    let writeToken = '';
-    let baseUrl = '';
+    let editingKey = null;
 
-    connectBtn.onclick = async () => {
-      baseUrl = baseUrlInput.value.trim();
-      readToken = readTokenInput.value.trim();
-      writeToken = writeTokenInput.value.trim();
+    document.getElementById('connectBtn').onclick = async () => {
+      const baseUrl = baseUrlEl.value.trim();
+      const readToken = readTokenEl.value.trim();
+      statusEl.textContent = 'Connecting...';
 
-      if (!baseUrl || !readToken) {
-        alert('Please fill base URL and read token.');
-        return;
-      }
-
-      statusDiv.textContent = 'Connecting...';
       try {
-        const res = await fetch(`${baseUrl}/list?service=test&instance=demo&readtoken=${readToken}`, { mode: 'cors' });
-        if (!res.ok) throw new Error('Connection failed');
-        statusDiv.textContent = 'Connected ✓';
+        const res = await fetch(`${baseUrl}/list?service=test&instance=demo&readtoken=${readToken}`, {
+          mode: 'cors'
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        await res.json();
+        statusEl.textContent = '✅ Connected';
         mainPanel.classList.remove('hidden');
-      } catch (err) {
-        statusDiv.textContent = 'Connection error: ' + err.message;
+      } catch (e) {
+        console.error(e);
+        statusEl.textContent = '❌ Connection failed: ' + e.message;
+        mainPanel.classList.remove('hidden'); // still show UI for testing
       }
     };
 
-    refreshBtn.onclick = loadConfigs;
-    addBtn.onclick = () => openModal('Add Config');
-
     async function loadConfigs() {
-      const service = serviceInput.value.trim();
-      const instance = instanceInput.value.trim();
-      if (!service || !instance) return alert('Please input service and instance.');
-
-      statusDiv.textContent = 'Loading...';
-      configTable.innerHTML = '';
+      const baseUrl = baseUrlEl.value.trim();
+      const readToken = readTokenEl.value.trim();
+      const service = serviceEl.value.trim();
+      const instance = instanceEl.value.trim();
+      configList.textContent = 'Loading...';
       try {
         const res = await fetch(`${baseUrl}/list?service=${service}&instance=${instance}&readtoken=${readToken}`, { mode: 'cors' });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || res.statusText);
-
-        const items = data.items || [];
-        if (items.length === 0) {
-          configTable.innerHTML = '<tr><td colspan="3" class="p-3 text-center text-gray-400">No configs found</td></tr>';
+        if (!Array.isArray(data)) {
+          configList.textContent = JSON.stringify(data, null, 2);
+          return;
         }
-
-        for (const key of items) {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td class="p-2 border-r font-mono">${key}</td>
-            <td class="p-2 border-r text-gray-700 text-xs" id="val-${key}">Loading...</td>
-            <td class="p-2 text-center">
-              <button class="text-blue-600 hover:underline" onclick="viewConfig('${key}')">View</button>
-              <button class="text-red-600 hover:underline ml-2" onclick="deleteConfig('${key}')">Del</button>
-            </td>`;
-          configTable.appendChild(tr);
-          loadValue(service, instance, key);
-        }
-
-        statusDiv.textContent = `Loaded ${items.length} configs.`;
-      } catch (err) {
-        statusDiv.textContent = 'Error: ' + err.message;
+        configList.innerHTML = data.map(k => `
+          <div class="flex justify-between items-center border-b py-1">
+            <span>${k}</span>
+            <div class="space-x-2">
+              <button onclick="viewValue('${k}')" class="text-blue-600 text-sm">View</button>
+              <button onclick="editConfig('${k}')" class="text-green-600 text-sm">Edit</button>
+              <button onclick="deleteConfig('${k}')" class="text-red-600 text-sm">Delete</button>
+            </div>
+          </div>`).join('');
+      } catch (e) {
+        configList.textContent = 'Failed: ' + e.message;
       }
     }
 
-    async function loadValue(service, instance, key) {
-      try {
-        const res = await fetch(`${baseUrl}/get?service=${service}&instance=${instance}&key=${key}&readtoken=${readToken}`, { mode: 'cors' });
-        const data = await res.json();
-        const valCell = document.getElementById(`val-${key}`);
-        valCell.textContent = data.value ? JSON.stringify(data.value) : '(empty)';
-      } catch {
-        const valCell = document.getElementById(`val-${key}`);
-        valCell.textContent = '(error)';
-      }
+    async function viewValue(key) {
+      const baseUrl = baseUrlEl.value.trim();
+      const readToken = readTokenEl.value.trim();
+      const service = serviceEl.value.trim();
+      const instance = instanceEl.value.trim();
+      const res = await fetch(`${baseUrl}/get?service=${service}&instance=${instance}&key=${key}&readtoken=${readToken}`, { mode: 'cors' });
+      const data = await res.json();
+      alert(`${key} = ${JSON.stringify(data.value || data, null, 2)}`);
     }
 
     async function deleteConfig(key) {
-      if (!confirm(`Delete key "${key}"?`)) return;
-      const service = serviceInput.value.trim();
-      const instance = instanceInput.value.trim();
-      try {
-        const res = await fetch(`${baseUrl}/delete?service=${service}&instance=${instance}&key=${key}&writetoken=${writeToken}`, {
-          method: 'POST',
-          mode: 'cors',
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || res.statusText);
-        loadConfigs();
-      } catch (err) {
-        alert('Delete failed: ' + err.message);
-      }
+      if (!confirm(`Delete ${key}?`)) return;
+      const baseUrl = baseUrlEl.value.trim();
+      const writeToken = writeTokenEl.value.trim();
+      const service = serviceEl.value.trim();
+      const instance = instanceEl.value.trim();
+      await fetch(`${baseUrl}/delete?service=${service}&instance=${instance}&key=${key}&writetoken=${writeToken}`, {
+        method: 'POST',
+        mode: 'cors'
+      });
+      loadConfigs();
     }
 
-    window.viewConfig = async (key) => {
-      const service = serviceInput.value.trim();
-      const instance = instanceInput.value.trim();
-      try {
-        const res = await fetch(`${baseUrl}/get?service=${service}&instance=${instance}&key=${key}&readtoken=${readToken}`, { mode: 'cors' });
-        const data = await res.json();
-        openModal('Edit Config', key, JSON.stringify(data.value, null, 2));
-      } catch (err) {
-        alert('Failed: ' + err.message);
-      }
+    function editConfig(key) {
+      editingKey = key;
+      modalTitle.textContent = 'Edit Config';
+      modalKey.value = key;
+      modalKey.disabled = true;
+      modalValue.value = '';
+      modal.classList.remove('hidden');
+    }
+
+    document.getElementById('refreshBtn').onclick = loadConfigs;
+    document.getElementById('newBtn').onclick = () => {
+      editingKey = null;
+      modalTitle.textContent = 'New Config';
+      modalKey.value = '';
+      modalKey.disabled = false;
+      modalValue.value = '';
+      modal.classList.remove('hidden');
     };
 
-    function openModal(title, key = '', value = '') {
-      modalTitle.textContent = title;
-      modalKey.value = key;
-      modalValue.value = value;
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-    }
-
-    modalCancel.onclick = () => modal.classList.add('hidden');
-    modalSave.onclick = async () => {
-      const service = serviceInput.value.trim();
-      const instance = instanceInput.value.trim();
+    document.getElementById('modalCancel').onclick = () => modal.classList.add('hidden');
+    document.getElementById('modalSave').onclick = async () => {
+      const baseUrl = baseUrlEl.value.trim();
+      const writeToken = writeTokenEl.value.trim();
+      const service = serviceEl.value.trim();
+      const instance = instanceEl.value.trim();
       const key = modalKey.value.trim();
       const value = modalValue.value.trim();
-      if (!service || !instance || !key) return alert('Missing fields');
-
-      try {
-        const res = await fetch(`${baseUrl}/set?writetoken=${writeToken}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ service, instance, key, value }),
-          mode: 'cors',
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || res.statusText);
-        modal.classList.add('hidden');
-        loadConfigs();
-      } catch (err) {
-        alert('Save failed: ' + err.message);
-      }
+      await fetch(`${baseUrl}/set?writetoken=${writeToken}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ service, instance, key, value }),
+        mode: 'cors'
+      });
+      modal.classList.add('hidden');
+      loadConfigs();
     };
   </script>
 </body>
